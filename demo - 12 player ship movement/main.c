@@ -30,6 +30,7 @@
 
 const int MAX_SHIP_SPEED = 4;
 
+static int logo_sprite_id;
 static int ship_sprite_id;
 static int bullet_sprite_id;
 
@@ -57,7 +58,7 @@ void cb_draw_scene(void)
 		switch(scene_state)
 		{
 			default:
-			case 0: // Initialisation
+			case 0: // Initialisation				
 				// Init 12 player positions
 				for(int i = 0; i < JO_INPUT_MAX_DEVICE; i++)
 				{
@@ -66,9 +67,13 @@ void cb_draw_scene(void)
 					
 				}			
 				scene_state = 1;
+				
 				break;
 				
 			case 1: // Update
+				// Add logo				
+				jo_sprite_draw3D(logo_sprite_id, 0, 0, 450);
+				
 				// Update 12 players
 				for(int i = 0; i < JO_INPUT_MAX_DEVICE; i++)
 				{
@@ -274,11 +279,12 @@ void cb_player_interaction(void)
 }
 
 void jo_main(void)
-{
+{	
 	//clear screen
 	jo_core_init(JO_COLOR_Black);
 	
 	//Load graphics
+	logo_sprite_id = jo_sprite_add_tga(JO_ROOT_DIR, "LOGO1.TGA", JO_COLOR_Green);
 	ship_sprite_id = jo_sprite_add_tga(JO_ROOT_DIR, "TRISHIP.TGA", JO_COLOR_Green);
 	bullet_sprite_id = jo_sprite_add_tga(JO_ROOT_DIR, "BULLET.TGA", JO_COLOR_Green);
 	
