@@ -58,7 +58,13 @@ void cb_draw_scene(void)
 		switch(scene_state)
 		{
 			default:
-			case 0: // Initialisation				
+			case 0: // Initialisation						
+				// Text
+				//jo_printf(1, 1, "Brightness value: %d", brightness);
+				jo_printf(1, 1, "Playground Projects");
+				jo_printf(1, 2, "Demo - 12 player ship movement");
+				jo_printf(1, 3, "by Segata Sanshiro");
+				
 				// Init 12 player positions
 				for(int i = 0; i < JO_INPUT_MAX_DEVICE; i++)
 				{
