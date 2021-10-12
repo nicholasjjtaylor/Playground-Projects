@@ -33,8 +33,10 @@ const int MAX_SHIP_SPEED = 4;
 static int ship_sprite_id;
 static int bullet_sprite_id;
 
-static bool is_in_cb_gamepad = false;
-static bool is_in_cb_draw = false;
+static bool is_in_cb_player_interaction = false;
+static bool is_in_cb_draw_scene = false;
+
+static int scene_state = 0;
 
 struct obj_player
 {
@@ -46,30 +48,48 @@ struct obj_player
 
 struct obj_player player[12];
 
-void cb_draw(void)
+void cb_draw_scene(void)
 {	
-	if(!is_in_cb_draw)
+	if(!is_in_cb_draw_scene)
 	{
-		is_in_cb_draw = true;
+		is_in_cb_draw_scene = true;
 		
-		// Draw 12 players
-		for(int i = 0; i < JO_INPUT_MAX_DEVICE; i++)
+		switch(scene_state)
 		{
-			jo_sprite_draw3D(ship_sprite_id, player[i].x, player[i].y, 450);
-			
+			default:
+			case 0: // Initialisation
+				// Init 12 player positions
+				for(int i = 0; i < JO_INPUT_MAX_DEVICE; i++)
+				{
+					player[i].x = (i * 16) - 96;
+					player[i].y = 100;
+					
+				}			
+				scene_state = 1;
+				break;
+				
+			case 1: // Update
+				// Update 12 players
+				for(int i = 0; i < JO_INPUT_MAX_DEVICE; i++)
+				{
+					jo_sprite_draw3D(ship_sprite_id, player[i].x, player[i].y, 450);
+					
+				}
+					
+				break;
 		}
-		
-		is_in_cb_draw = false;
+			
+		is_in_cb_draw_scene = false;
 		
 	}
 	
 }
 
-void cb_gamepad(void)
+void cb_player_interaction(void)
 {
-	if(!is_in_cb_gamepad)
+	if(!is_in_cb_player_interaction)
 	{
-		is_in_cb_gamepad = true;
+		is_in_cb_player_interaction = true;
 			
 		// 1 - 12 players
 		// 0..5 multitap 1
@@ -247,7 +267,7 @@ void cb_gamepad(void)
 					
 		}
 
-		is_in_cb_gamepad = false;
+		is_in_cb_player_interaction = false;
 
 	}
 	
@@ -263,8 +283,8 @@ void jo_main(void)
 	bullet_sprite_id = jo_sprite_add_tga(JO_ROOT_DIR, "BULLET.TGA", JO_COLOR_Green);
 	
 	//Add callbacks called once per frame
-	jo_core_add_callback(cb_gamepad);
-	jo_core_add_callback(cb_draw);
+	jo_core_add_callback(cb_player_interaction);
+	jo_core_add_callback(cb_draw_scene);
 	
 	jo_core_run();
 	
