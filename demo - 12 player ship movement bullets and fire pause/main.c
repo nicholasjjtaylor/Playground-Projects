@@ -1,0 +1,385 @@
+/*
+** Gamepad Routine
+** Copyright (c) 2021, Nicholas John Joseph Taylor (nicholas.john.joseph.taylor@gmail.com)
+** All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+** modification, are permitted provided that the following conditions are met:
+**     * Redistributions of source code must retain the above copyright
+**       notice, this list of conditions and the following disclaimer.
+**     * Redistributions in binary form must reproduce the above copyright
+**       notice, this list of conditions and the following disclaimer in the
+**       documentation and/or other materials provided with the distribution.
+**     * Neither the name of the Johannes Fetz nor the
+**       names of its contributors may be used to endorse or promote products
+**       derived from this software without specific prior written permission.
+**
+** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+** ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+** WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+** DISCLAIMED. IN NO EVENT SHALL Johannes Fetz BE LIABLE FOR ANY
+** DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+** (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+** LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+** ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#include <jo/jo.h>
+
+const int MAX_SHIP_SPEED = 4;
+
+const int PLAYER_FIRE_PAUSE = 16;
+
+static int logo_sprite_id;
+static int ship_sprite_id;
+static int bullet_sprite_id;
+
+static bool is_in_cb_player_interaction = false;
+static bool is_in_cb_draw_scene = false;
+
+static int scene_state = 0;
+
+struct obj_player
+{
+	bool active;
+	int x;
+	int x_throttle;
+	int y;
+	int y_throttle;
+	int a_fire_pause;
+	int x_fire_pause;
+};
+
+struct obj_player player[12];
+
+struct obj_bullet
+{
+	bool active;
+	int x;
+	int y;
+};
+
+const int BULLET_SPEED = 8;
+const int MAX_BULLETS = 256; // needs to be the same as array size below
+struct obj_bullet bullet[256]; // must be same as const MAX_BULLETS above
+
+void cb_draw_scene(void)
+{	
+	if(!is_in_cb_draw_scene)
+	{
+		is_in_cb_draw_scene = true;
+		
+		switch(scene_state)
+		{
+			default:
+			case 0: // Initialisation			
+				// Text
+				//jo_printf(1, 1, "Brightness value: %d", brightness);
+				jo_printf(1, 1, "Playground Projects");
+				jo_printf(1, 2, "Demo - 12 player ship movement,");
+				jo_printf(1, 3, "bullets and fire pause");
+				jo_printf(1, 4, "by Segata Sanshiro");
+					
+				// Init 12 player positions
+				for(int i = 0; i < JO_INPUT_MAX_DEVICE; i++)
+				{
+					player[i].x = (i * 16) - 96;
+					player[i].y = 100;
+					
+				}			
+				scene_state = 1;
+				
+				break;
+				
+			case 1: // Update				
+				// Add logo				
+				jo_sprite_draw3D(logo_sprite_id, 0, 0, 450);
+				
+				// Update 12 players
+				for(int i = 0; i < JO_INPUT_MAX_DEVICE; i++)
+				{
+					jo_sprite_draw3D(ship_sprite_id, player[i].x, player[i].y, 450);
+					
+				}
+				
+				// Update bullets
+				for(int i = 0; i < MAX_BULLETS; i++)
+				{
+					if(bullet[i].active == true)
+					{
+						jo_sprite_draw3D(bullet_sprite_id, bullet[i].x, bullet[i].y, 450);
+						
+						bullet[i].y-=BULLET_SPEED;
+						
+						if(bullet[i].y < -160)
+						{
+							bullet[i].active = false;
+						}
+					}
+					
+				}
+					
+				break;
+		}
+			
+		is_in_cb_draw_scene = false;
+		
+	}
+	
+}
+
+void cb_player_interaction(void)
+{
+	if(!is_in_cb_player_interaction)
+	{
+		is_in_cb_player_interaction = true;
+			
+		// 1 - 12 players
+		// 0..5 multitap 1
+		// 6..11 multitap 2
+		for(int i = 0; i < JO_INPUT_MAX_DEVICE; i++)
+		{			
+			// If controller is not available then check next controller
+			if (!jo_is_input_available(i))
+			{
+				
+				continue;
+			}
+	
+			// Switch DPad
+			switch (jo_get_input_direction_pressed(i))
+			{
+			    case DOWN:
+			    	//Down
+			    	if(player[i].y_throttle < MAX_SHIP_SPEED)
+		    		{
+		    				player[i].y_throttle+=2;
+		    		}
+			    	break;
+			    	
+			    case DOWN_LEFT:
+			    	//Down
+			    	if(player[i].y_throttle < MAX_SHIP_SPEED)
+		    		{
+		    				player[i].y_throttle+=2;
+		    		}
+		    		//Left
+			    	if(player[i].x_throttle > 0-MAX_SHIP_SPEED)
+		    		{
+		    				player[i].x_throttle-=2;
+		    		}
+			    	break;
+			    	
+			    case LEFT:
+		    		//Left
+			    	if(player[i].x_throttle > 0-MAX_SHIP_SPEED)
+		    		{
+		    				player[i].x_throttle-=2;
+		    		}			    	
+			    	break;
+			    	
+			    case UP_LEFT: 
+			    	//Up
+			    	if(player[i].y_throttle > 0-MAX_SHIP_SPEED)
+		    		{
+		    				player[i].y_throttle-=2;
+		    		}
+		    		//Left
+			    	if(player[i].x_throttle > 0-MAX_SHIP_SPEED)
+		    		{
+		    				player[i].x_throttle-=2;
+		    		}
+			    	break;
+			    	
+			    case UP:
+			    	//Up
+			    	if(player[i].y_throttle > 0-MAX_SHIP_SPEED)
+		    		{
+		    				player[i].y_throttle-=2;
+		    		}
+			    	break;
+			    	
+			    case UP_RIGHT:
+			    	//Up
+			    	if(player[i].y_throttle > 0-MAX_SHIP_SPEED)
+		    		{
+		    				player[i].y_throttle-=2;
+		    		}
+		    		//Right
+			    	if(player[i].x_throttle < MAX_SHIP_SPEED)
+		    		{
+		    				player[i].x_throttle+=2;
+		    		}
+			    	break;
+			    	
+			    case RIGHT:
+		    		//Right
+			    	if(player[i].x_throttle < MAX_SHIP_SPEED)
+		    		{
+		    				player[i].x_throttle+=2;
+		    		}
+			    	break;
+			    	
+			    case DOWN_RIGHT:
+			    	//Down
+			    	if(player[i].y_throttle < MAX_SHIP_SPEED)
+		    		{
+		    				player[i].y_throttle+=2;
+		    		}
+		    		//Right
+			    	if(player[i].x_throttle < MAX_SHIP_SPEED)
+		    		{
+		    				player[i].x_throttle+=2;
+		    		}
+			    	break;
+			    	
+			    case NONE: 
+			    	
+			    	break;
+			}
+	
+
+    	//Center y
+    	if(player[i].y_throttle > 0)
+  		{
+  				player[i].y_throttle--;
+  		}
+    	if(player[i].y_throttle < 0)
+  		{
+  				player[i].y_throttle++;
+  		}
+  		//Center x
+    	if(player[i].x_throttle < 0)
+  		{
+  				player[i].x_throttle++;
+  		}
+    	if(player[i].x_throttle > 0)
+  		{
+  				player[i].x_throttle--;
+  		}
+			// Update x and y
+			player[i].x = player[i].x + player[i].x_throttle;
+			player[i].y = player[i].y + player[i].y_throttle;
+			
+	
+			// Inividual buttons
+			if (jo_is_input_key_pressed(i, JO_KEY_START))
+			{
+				
+			}
+			
+			if (jo_is_input_key_pressed(i, JO_KEY_L))
+			{
+				
+			}
+			
+			if (jo_is_input_key_pressed(i, JO_KEY_R))
+			{
+				
+			}
+			
+			if (jo_is_input_key_pressed(i, JO_KEY_A))
+			{
+				if(player[i].a_fire_pause == 0)
+				{
+					for(int j = 0; j < MAX_BULLETS; j++)
+					{
+						if (bullet[j].active == false)
+						{
+							bullet[j].active = true;
+							bullet[j].x = player[i].x;
+							bullet[j].y = player[i].y - 16;	
+							player[i].a_fire_pause = PLAYER_FIRE_PAUSE;
+							break;
+						}
+					}
+				}
+				else
+				{
+					if(player[i].a_fire_pause > 0)
+					{
+						player[i].a_fire_pause--;
+					}
+				}
+			}
+			else
+			{
+				player[i].a_fire_pause = 0;
+			}
+			
+			if (jo_is_input_key_pressed(i, JO_KEY_B))
+			{
+				
+			}
+			
+			if (jo_is_input_key_pressed(i, JO_KEY_C))
+			{
+				
+			}
+		
+			if (jo_is_input_key_pressed(i, JO_KEY_X))
+			{
+				if(player[i].x_fire_pause == 0)
+				{
+					for(int j = 0; j < MAX_BULLETS; j++)
+					{
+						if (bullet[j].active == false)
+						{
+							bullet[j].active = true;
+						bullet[j].x = player[i].x + (jo_random(16) - 8);
+						bullet[j].y = player[i].y - 16 + jo_random(4);	
+							player[i].x_fire_pause = PLAYER_FIRE_PAUSE;
+							break;
+						}
+					}
+				}
+				else
+				{
+					if(player[i].x_fire_pause > 0)
+					{
+						player[i].x_fire_pause--;
+					}
+				}
+			}
+			else
+			{
+				player[i].x_fire_pause = 0;
+			}
+			
+			if (jo_is_input_key_pressed(i, JO_KEY_Y))
+			{
+				//jo_audio_play_cd_track(2, 2, true); // one of two cd track play tests
+			}
+			
+			if (jo_is_input_key_pressed(i, JO_KEY_Z))
+			{				
+				//jo_audio_play_cd_track(3, 3, true); // one of two cd track play tests
+			}
+					
+		}
+
+		is_in_cb_player_interaction = false;
+
+	}
+	
+}
+
+void jo_main(void)
+{	
+	//clear screen
+	jo_core_init(JO_COLOR_Black);
+	
+	//Load graphics
+	logo_sprite_id = jo_sprite_add_tga(JO_ROOT_DIR, "LOGO1.TGA", JO_COLOR_Green);
+	ship_sprite_id = jo_sprite_add_tga(JO_ROOT_DIR, "TRISHIP.TGA", JO_COLOR_Green);
+	bullet_sprite_id = jo_sprite_add_tga(JO_ROOT_DIR, "BULLET.TGA", JO_COLOR_Green);
+	
+	//Add callbacks called once per frame
+	jo_core_add_callback(cb_player_interaction);
+	jo_core_add_callback(cb_draw_scene);
+	
+	jo_core_run();
+	
+}
