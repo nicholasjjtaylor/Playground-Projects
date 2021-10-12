@@ -28,12 +28,13 @@
 
 #include <jo/jo.h>
 
-const MAX_SHIP_SPEED = 4;
+const int MAX_SHIP_SPEED = 4;
 
 static int ship_sprite_id;
 static int bullet_sprite_id;
 
 static bool is_in_cb_gamepad = false;
+static bool is_in_cb_draw = false;
 
 struct obj_player
 {
@@ -47,10 +48,18 @@ struct obj_player player[12];
 
 void cb_draw(void)
 {	
-	// Draw 12 players
-	for(int i = 0; i < JO_INPUT_MAX_DEVICE; i++)
+	if(!is_in_cb_draw)
 	{
-		jo_sprite_draw3D(ship_sprite_id, player[i].x, player[i].y, 450);
+		is_in_cb_draw = true;
+		
+		// Draw 12 players
+		for(int i = 0; i < JO_INPUT_MAX_DEVICE; i++)
+		{
+			jo_sprite_draw3D(ship_sprite_id, player[i].x, player[i].y, 450);
+			
+		}
+		
+		is_in_cb_draw = false;
 		
 	}
 	
