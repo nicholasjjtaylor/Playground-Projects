@@ -53,9 +53,9 @@ const int SCREEN_HEIGHT_4 = 244 * 4;
 struct obj_debris
 {
 	bool active;
-	int x_4;
-	int y_4;
-	int angle_256;
+	int x_4; // The _4 is to remind me to divide by 4 before rendering
+	int y_4; // The _4 is to remind me to divide by 4 before rendering
+	int angle_256; //The _256 is to remind me that circles have 256 degrees
 	int speed;
 	int sprite_id;
 };
@@ -79,10 +79,8 @@ int mysin(int angle_256)
 	}
 	return cos_32767[angle_256];
 }
-
-void init_debris(int i)
-{
-	debris[i].speed = jo_random(7) + 1;			
+void init_debris_screen_edge_rnd(int i)
+{	
 	switch(jo_random(8))
 	{
 		case 1:
@@ -111,13 +109,14 @@ void init_debris(int i)
 			debris[i].sprite_id = debris8_sprite_id;
 			break;
 	}
+	debris[i].speed = jo_random(7) + 1;		
 	debris[i].angle_256 = jo_random(255);
 	if(debris[i].angle_256 >= 96 && debris[i].angle_256 < 160) // specifically moving north (angle 128 moves up the screen)
 	{
 		debris[i].x_4 = jo_random(SCREEN_WIDTH_4) - (SCREEN_WIDTH_4/2);
 		debris[i].y_4 = (SCREEN_HEIGHT_4/2);
 	}
-	if(debris[i].angle_256 >= 0 && debris[i].angle_256 < 256 && debris[i].angle_256 >= 224 && debris[i].angle_256 < 32) // specifically moving south (angle 0 moves down the screen)
+	if((debris[i].angle_256 >= 0 && debris[i].angle_256 < 32) || (debris[i].angle_256 >= 224 && debris[i].angle_256 <= 256)) // specifically moving south (angle 0 moves down the screen)
 	{
 		debris[i].x_4 = jo_random(SCREEN_WIDTH_4) - (SCREEN_WIDTH_4/2);
 		debris[i].y_4 = 0 - (SCREEN_HEIGHT_4/2);
@@ -125,16 +124,14 @@ void init_debris(int i)
 	if(debris[i].angle_256 >= 32 && debris[i].angle_256 < 96) // specifically moving east (angle 64 moves right along the screen)
 	{
 		debris[i].x_4 = 0 - (SCREEN_WIDTH_4/2);
-		debris[i].y_4 = jo_random(SCREEN_HEIGHT_4) - (SCREEN_HEIGHT_4/2);
-		
+		debris[i].y_4 = jo_random(SCREEN_HEIGHT_4) - (SCREEN_HEIGHT_4/2);		
 	}
 	if(debris[i].angle_256 >= 160 && debris[i].angle_256 < 224) // specifically moving west (angle 64 moves left along the screen)
 	{
 		debris[i].x_4 = (SCREEN_WIDTH_4/2);
 		debris[i].y_4 = jo_random(SCREEN_HEIGHT_4) - (SCREEN_HEIGHT_4/2);							
 	}				
-	debris[i].active = 1;
-	
+	debris[i].active = 1;	
 }
 
 void deinit_debris(int i)
@@ -166,7 +163,7 @@ void cb_draw_scene(void)
 				{					
 					if(debris[i].active == 0)
 					{
-						init_debris(i);
+						init_debris_screen_edge_rnd(i);
 					}
 				}			
 				scene_state = 1;
@@ -179,6 +176,7 @@ void cb_draw_scene(void)
 				{
 					if(debris[i].active == 1)
 					{
+						
 						debris[i].angle_256++;
 						if(debris[i].angle_256 > 256)
 						{
@@ -187,14 +185,13 @@ void cb_draw_scene(void)
 						
 						debris[i].x_4 = debris[i].x_4 + ((mysin(debris[i].angle_256) * debris[i].speed) / 8192); //32767/4= ...will be divided at render time
 						debris[i].y_4 = debris[i].y_4 + ((mycos(debris[i].angle_256) * debris[i].speed) / 8192); //32767/4= ...will be divided at render time
-												
-						if(debris[i].angle_256 >= 0 && debris[i].angle_256 < 64 && debris[i].angle_256 >= 192 && debris[i].angle_256 < 256) // angle 0 moves down the screen
+																		
+						if((debris[i].angle_256 >= 0 && debris[i].angle_256 < 64) || (debris[i].angle_256 >= 192 && debris[i].angle_256 <= 256)) // angle 0 moves down the screen
 						{
 							if(debris[i].y_4 > (SCREEN_HEIGHT_4/2) + debris[i].speed)
 							{
 								deinit_debris(i);
-							}
-							
+							}							
 						}
 						
 						if(debris[i].angle_256 >= 64 && debris[i].angle_256 < 192) // angle 128 moves up the screen
@@ -202,43 +199,30 @@ void cb_draw_scene(void)
 							if(debris[i].y_4 < 0 - (SCREEN_HEIGHT_4/2) - debris[i].speed)
 							{
 								deinit_debris(i);
-							}
-							
+							}							
 						}
 						
 						if(debris[i].angle_256 >= 0 && debris[i].angle_256 < 128) // angle 64 moves right along the screen
-						{
-							if(debris[i].x_4 < 0 - (SCREEN_WIDTH_4/2) - debris[i].speed)
+						{			
+							if(debris[i].x_4 > (SCREEN_WIDTH_4/2) + debris[i].speed)
 							{
 								deinit_debris(i);
-							}
-							
+							}					
 						}
 						
 						if(debris[i].angle_256 >= 128 && debris[i].angle_256 < 256) // angle 192 moves left along the screen
 						{
-							if(debris[i].x_4 > (SCREEN_WIDTH_4/2) + debris[i].speed)
+							if(debris[i].x_4 < 0 - (SCREEN_WIDTH_4/2) - debris[i].speed)
 							{
 								deinit_debris(i);
-							}
-							
+							}						
 						}
-						
-						/*
-							while(debris[i].y_4 < (SCREEN_HEIGHT_4/2) - debris[i].speed)
-							{
-								debris[i].y_4 += SCREEN_HEIGHT_4;
-								debris[i].x_4 = jo_random(SCREEN_WIDTH_4) - (SCREEN_WIDTH_4/2);				
-								//reset_debris(i);
-							}
-							
-						*/
 						
 						jo_sprite_draw3D(debris[i].sprite_id, debris[i].x_4/4, debris[i].y_4/4, 450);
 					}
 					else
 					{
-						init_debris(i);
+						init_debris_screen_edge_rnd(i);
 					}
 				}
 				
