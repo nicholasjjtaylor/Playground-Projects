@@ -216,8 +216,8 @@ void cb_draw_scene(void)
 				// Text
 				//jo_printf(1, 1, "Brightness value: %d", brightness);
 				jo_printf(1, 1, "Playground Projects");
-				jo_printf(1, 2, "Demo 06 - Multidirectional");
-				jo_printf(1, 3, "Starfield/Debris");
+				jo_printf(1, 2, "Demo 06 v0.3 - Multidirectional");
+				jo_printf(1, 3, "Starfield/Debris Linear");
 				jo_printf(1, 4, "by Segata Sanshiro");
 					
 				// Init debris positions
@@ -232,22 +232,7 @@ void cb_draw_scene(void)
 				
 				break;
 				
-			case 1: // Update	
-				jo_printf(1, 1, "active: %d        ", debris[0].active);
-				jo_printf(1, 2, "x_4: %d           ", debris[0].x_4);
-				jo_printf(1, 3, "y_4: %d           ", debris[0].y_4);
-				jo_printf(1, 4, "angle_256: %d     ", debris[0].angle_256);
-				jo_printf(1, 5, "speed: %d", debris[0].speed);	
-				jo_printf(1, 6, "sprite_id: %d", debris[0].sprite_id);	
-				
-				/*
-				bool active;
-	int x_4;
-	int y_4;
-	int angle_256;
-	int speed;
-	int sprite_id;
-				*/						
+			case 1: // Update				
 				// Update debris	
 				for(int i = 0; i < MAX_DEBRIS; i++)
 				{
