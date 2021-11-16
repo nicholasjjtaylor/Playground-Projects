@@ -33,7 +33,7 @@
 // Sounds
 
 //static jo_sound whoosh;
-//static jo_sound boom;
+static jo_sound boom;
 
 // Logo bits
 
@@ -161,23 +161,19 @@ void init_spark_speed_fuel_rnd(int i, int stage, int stage_type, int x_4, int y_
 	switch(stage_type)
 	{
 		default:
-		case 0:
+		case 1:
 			//v0.1 Original Big bang
 			spark[i].fuel = jo_random(64) + 128;
 			spark[i].speed = jo_random(7) + 1;		
 		break;
-		case 1:
+		case 2:
 			//v0.2 slow ring
 			spark[i].fuel = jo_random(16) + 16;
 			spark[i].speed = jo_random(1) + 1;		
 		break;
-		case 2:
+		case 3:
 			//v0.3 Small bang
 			spark[i].fuel = jo_random(16) + 16;
-			spark[i].speed = jo_random(4) + 1;		
-		break;
-		case 3: 
-			spark[i].fuel = jo_random(4) + 4;
 			spark[i].speed = jo_random(4) + 1;		
 		break;
 	}
@@ -191,7 +187,7 @@ void init_spark_speed_fuel_rnd(int i, int stage, int stage_type, int x_4, int y_
 void init_blast(int stage, int stage_type, int x_4, int y_4, int angle_between_sparks)
 {
 	// sound
-	//jo_audio_play_sound_on_channel(&boom, 0);
+	jo_audio_play_sound_on_channel(&boom, 0);
 	
 	//object setup
 	for(int j = 0; j < 256; j+=angle_between_sparks)
@@ -569,12 +565,6 @@ void cb_controllers(void)
 
 void jo_main(void)
 {	
-	// Sound
-	//jo_audio_load_pcm("BOOM.PCM", JoSoundMono16Bit, &boom);
-	//boom.sample_rate = 16000;
-	//jo_audio_load_pcm("WHOOSH.PCM", JoSoundMono16Bit, &whoosh);    
-	//whoosh.sample_rate = 16000; // After loading our file we have to set the sampling rate (8000 to 44100 kHz, the -ar option)
-	
 	//Tables
 	cos_32767[0] = 32767;
 	cos_32767[1] = 32757;
@@ -835,6 +825,13 @@ void jo_main(void)
 	
 	//clear screen
 	jo_core_init(JO_COLOR_Black);
+	
+	// Load sound
+	jo_audio_load_pcm("BOOM.PCM", JoSoundMono16Bit, &boom);
+	boom.sample_rate = 16000;
+	//jo_audio_load_pcm("WHOOSH.PCM", JoSoundMono16Bit, &whoosh);    
+	//whoosh.sample_rate = 16000; // After loading our file we have to set the sampling rate (8000 to 44100 kHz, the -ar option)
+	
 	
 	//Load graphics
 	logo_sprite_id = jo_sprite_add_tga(JO_ROOT_DIR, "LOGO1.TGA", JO_COLOR_Green);
