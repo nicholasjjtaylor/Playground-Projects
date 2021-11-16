@@ -1,0 +1,2 @@
+ffmpeg -i BOOM.WAV -f s16be -ar 44100 BOOM.PCM
+ffmpeg -i WHOOSH.WAV -f s16be -ar 44100 WHOOSH.PCM
